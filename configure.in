@@ -1,0 +1,99 @@
+AC_INIT(rblcheckd, 1.0a, bugs@rbl.bit.nl)
+AC_CONFIG_SRCDIR([rblcheckd.c])
+AC_CONFIG_HEADER([config.h])
+
+AC_CANONICAL_HOST
+
+# Preset the configuration directory
+sysconfdir="/etc/mail/rbl/"
+
+echo "Your host seems to be... '$host'"
+case "$host" in
+	*-linux-gnu*)
+		os_type=linux
+		my_defs="$my_defs -D__LINUX__"
+		echo "*** If it ain't slackware, it prolly ain't much"
+		;;
+	*-netbsdelf* )
+		os_type=netbsd
+		my_defs="$my_defs -D__NETBSD__"
+		echo "*** You run the programmers favorite OS :)"
+		;;
+	*-openbsd* )
+		os_type=openbsd
+		my_defs="$my_defs -D__OPENBSD__"
+		echo "*** Did you hear the audiotrack on oBSD 3.0 ?"
+		;;
+	*-freebsd4* )
+		os_type=freebsd
+		my_defs="$my_defs -D__FREEBSD__"
+#		LDFLAGS="-ldevstat $LDFLAGS"
+		echo "*** Have you ever tried running NetBSD ?"
+		;;
+	*-freebsd5* )
+		os_type=freebsd
+		my_defs="$my_defs -D__FREEBSD__"
+		LDFLAGS="-ldevstat $LDFLAGS"
+		echo "*** Do you really think FreeBSD5 is stable ?"
+		;;
+		*)
+		AC_MSG_ERROR([
+
+ERROR: This program does not support '$host' yet.
+       rblcheckd runs on Linux (2.4) and Net/Free/OpenBSD.
+])
+		;;
+esac
+
+case "$os_type" in
+	*bsd )
+		infotype=bsd
+		my_defs="$my_defs -D__BSD__"
+	;;
+	linux )
+		infotype=linux
+	;;
+	* )
+		infotype=unknown
+	;;
+esac
+
+# Checks for programs.
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+AC_PROG_CC
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([arpa/nameser.h sys/stat.h netdb.h sys/uio.h syslog.h fcntl.h])
+AC_CHECK_HEADERS([syslog.h errno.h arpa/inet.h netinet/in.h])
+AC_CHECK_HEADERS([sys/socket.h sys/types.h])
+AC_CHECK_HEADERS([sys/endian.h endian.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_BIGENDIAN
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+
+AC_CHECK_TYPE(ssize_t, int)
+AC_CHECK_SIZEOF(uint8_t, 1)
+AC_CHECK_SIZEOF(uint16_t, 2)
+AC_CHECK_SIZEOF(uint32_t, 4)
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_STAT
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS([strlcpy])
+
+#if test "$localstatedir" = "\${prefix}/var" ; then
+#	localstatedir="$localstatedir/dapd"
+#fi
+AC_SUBST(infotype)
+AC_SUBST(DEFS)
+AC_SUBST(my_defs)
+AC_OUTPUT(Makefile)
+
+echo ""
